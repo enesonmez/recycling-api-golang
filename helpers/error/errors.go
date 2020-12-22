@@ -3,31 +3,27 @@ package error
 import (
 	"encoding/json"
 	"log"
-	"net/http"
 
-	. "../../models/info"
-	. "../../models/page"
+	. "oyeco-api/models/info"
 )
 
+// Genel hata kontrol fonksiyonu
 func CheckEror(err error) {
 	if err != nil {
 		log.Println(err.Error())
 	}
 }
 
-func JsonError(err error, w http.ResponseWriter, status int, message string) bool { // true dönerse handlers return edecek
+// Hata meydana  geldiğinde json hata sayfasını oluşturur
+func JsonError(err error, status int, message string) (bool, []byte) { // true dönerse handlers return edecek
 	if err != nil {
 		info := new(Info)
-		info.InfoConstructer(false, status, message) // Info nesnesine değerler setleniyor.
-		var infoPage InfoPage
-		infoPage.InfoPageConstructer(info)
-		data, err := json.Marshal(infoPage)
+		info.InfoConstructer(false, status, message)     // Info nesnesine değerler setleniyor.
+		infoPage := map[string]interface{}{"info": info} // Hata sayfası oluşturuldu.
+		data, err := json.Marshal(infoPage)              // Map parse edildi.
 		CheckEror(err)
 
-		w.Header().Set("Content-Type", "application/json") // Client'a respos olarak hata mesajı döndürülür.
-		w.WriteHeader(status)
-		http.Error(w, string(data), status)
-		return true
+		return true, data
 	}
-	return false
+	return false, []byte("")
 }

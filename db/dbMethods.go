@@ -8,12 +8,12 @@ import (
 )
 
 // Veritabanı bilgilerini nesne değişkenleri ile eşitler.
-func (db *Db) Assign() {
-	db.dbHost = "localhost"
+func (db *Db) Assign() { // localhost postgres 123456789 upcycling => johnny.heliohost.org enesonme_local A25.pSt13Cd; enesonme_upcycling
+	db.dbHost = "johnny.heliohost.org"
 	db.dbPort = 5432
-	db.dbUserName = "postgres"
-	db.dbPass = "123456789"
-	db.dbName = "upcycling"
+	db.dbUserName = "enesonme_local"
+	db.dbPass = "A25.pSt13Cd;"
+	db.dbName = "enesonme_upcycling"
 }
 
 // Veritabanı bağlantısı
@@ -25,11 +25,6 @@ func (dbms *Db) Connect() (*sql.DB, error) {
 		return nil, err
 	}
 	return db, nil
-}
-
-// Veritabanı bağlantısını keser
-func (dbms *Db) Close(db *sql.DB) {
-	db.Close()
 }
 
 // Veritabanı tablolarını oluşturma

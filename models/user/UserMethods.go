@@ -1,11 +1,17 @@
 package user
 
 import (
-	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 
-	. "../../helpers"
+	. "oyeco-api/db"
+
+	. "oyeco-api/helpers"
+
+	. "oyeco-api/helpers/error"
+
+	. "oyeco-api/models/info"
 )
 
 // Get - Set Metotları
@@ -55,27 +61,52 @@ func (user *User) UserConsturcter(firstName, lastName, phoneNumber, email, passw
 	user.IsBlock = isBlock
 }
 
+// String değerlerden en az biri boş mu kontrolü
+func (user *User) IsEmptyStringValues() error {
+	if IsEmpty(user.FirstName) || IsEmpty(user.LastName) || IsEmpty(user.PhoneNumber) || IsEmpty(user.Email) || IsEmpty(user.Password) || IsEmpty(user.Gender) {
+		return errors.New("expected values not sent, check your values") // beklenen değerler gönderilmedi, değerlerinizi kontrol edin
+	}
+	return nil
+}
+
 // User Tablosuna Kayıt İşlemini Gerçekleştiriyor.
-func (user *User) InsertRow(db *sql.DB) (int, error) {
+func (user *User) Create() (int, []byte) { // (int, []byte) => (statusCode, responseData)
+	// Gönderilen değerler boş mu kontrolü
+	if err := user.IsEmptyStringValues(); err != nil {
+		if value, data := JsonError(err, 412, err.Error()); value == true {
+			return 412, data
+		}
+	}
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "database connection error"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+
 	sqlStatement := `
 		INSERT INTO users (firstName, lastName, phoneNumber, email, password, gender, birthDay, recordTime, isVerifyEmail, isBlock)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING uID`
 	id := 0
-	tx, _ := db.Begin() // callback yapmak için transaction başlatılıyor.
+	tx, _ := db.Begin() // Rollback yapmak için transaction başlatılıyor.
 	err := db.QueryRow(sqlStatement, user.FirstName, user.LastName, user.PhoneNumber, user.Email, user.Password, user.Gender, user.BirthDay, user.RecordTime, user.IsVerifyEmail, user.IsBlock).Scan(&id)
-	if err != nil {
-		tx.Rollback()
-		return -1, err
+	if value, data := JsonError(err, 412, "email or phone number is registered in the system"); value == true {
+		tx.Rollback() // Rollback yapılıyor.
+		return 500, data
 	}
-	_ = tx.Commit()
-	return id, nil
-}
+	_ = tx.Commit() // Transaction durduruldu.
+	db.Close()      // DB bağlantısı kapatıldı.
 
-// String değerlerden en az biri boş mu kontrolü
-func (user *User) IsEmptyStringValues() error {
-	if IsEmpty(user.FirstName) || IsEmpty(user.LastName) || IsEmpty(user.PhoneNumber) || IsEmpty(user.Email) || IsEmpty(user.Password) || IsEmpty(user.Gender) {
-		return errors.New("beklenilen değerler yollanmamış, değerlerinizi kontrol edin")
+	// Başarılı response için bilgi sayfası oluşturuluyor
+	info := new(Info)
+	info.InfoConstructer(true, 201, "data registration successful")
+	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
+
+	data, err := json.Marshal(infoPage) // InfoPage nesnesi json'a parse ediliyor.
+	if value, data := JsonError(err, 500, "unexpected json parse error"); value == true {
+		return 500, data
 	}
-	return nil
+
+	return 201, data // Başarılı response return yapılıyor.
 }
