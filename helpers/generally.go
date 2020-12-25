@@ -5,8 +5,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	. "oyeco-api/db"
+	. "oyeco-api/models/config"
 )
 
 // String değer boş mu?
@@ -52,4 +54,17 @@ func IsAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 			fmt.Fprintf(w, "Not Authorized")
 		}
 	})
+}
+
+func SetEnv() {
+	conf := new(Config) // Konfigürasyon dosyasındaki değişkenleri kullanmak için nesne kullanılmıştır.
+	conf.ConfigRead()
+	os.Setenv("DBHost", conf.DBHost)
+	os.Setenv("DBPort", strconv.Itoa(conf.DBPort))
+	os.Setenv("DBUsername", conf.DBUsername)
+	os.Setenv("DBPassword", conf.DBPassword)
+	os.Setenv("DBName", conf.DBName)
+	os.Setenv("Email", conf.Email)
+	os.Setenv("EmailPassword", conf.EmailPassword)
+	os.Setenv("BaseURL", conf.BaseURL)
 }

@@ -3,6 +3,9 @@ package user
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
+	"strconv"
 	"time"
 
 	. "oyeco-api/db"
@@ -90,17 +93,28 @@ func (user *User) Create() (int, []byte) { // (int, []byte) => (statusCode, resp
 		RETURNING uID`
 	id := 0
 	tx, _ := db.Begin() // Rollback yapmak için transaction başlatılıyor.
-	err := db.QueryRow(sqlStatement, user.FirstName, user.LastName, user.PhoneNumber, user.Email, user.Password, user.Gender, user.BirthDay, user.RecordTime, user.IsVerifyEmail, user.IsBlock).Scan(&id)
-	if value, data := JsonError(err, 412, "email or phone number is registered in the system"); value == true {
+	encryptPass := fmt.Sprintf("%x", Encrypt([]byte(user.Password)))
+	err := db.QueryRow(sqlStatement, user.FirstName, user.LastName, user.PhoneNumber, user.Email, encryptPass, user.Gender, user.BirthDay, user.RecordTime, user.IsVerifyEmail, user.IsBlock).Scan(&id)
+	if value, data := JsonError(err, 412, "email or phone number is registered in the system or data type size"); value == true {
 		tx.Rollback() // Rollback yapılıyor.
 		return 500, data
 	}
-	_ = tx.Commit() // Transaction durduruldu.
-	db.Close()      // DB bağlantısı kapatıldı.
+	_ = tx.Commit()  // Transaction durduruldu.
+	defer db.Close() // DB bağlantısı kapatıldı.
+
+	// Mail yollama
+	encryptID := fmt.Sprintf("%x", Encrypt([]byte(strconv.Itoa(id)))) // Id şifrelenerek ekleniyor.
+	msg := fmt.Sprintf("İyi Günler %s  %s,  \nBu mail hesabınızı aktif edebilmeniz için atılmaktadır. Hesabınızı aktif etmek için aşağıdaki maile tıklayabilirsiniz. (Lütfen linke tıklanmıyorsa kopyalayıp tarayıcınızda açın)\n\n%s/users/activation/%s \n\nSevgilerle,\nUpcycling", user.FirstName, user.LastName, os.Getenv("BaseURL"), encryptID)
+	errmail := SendMail(user.Email, "Hesap Aktivasyon Maili", msg)
+	if value, data := JsonError(errmail, 500, "unexpected to send email error"); value == true {
+		deleteStatement := `DELETE FROM users WHERE id = $1;` // eğer aktivasyon maili atılamazsa kayıt silinir.
+		db.Exec(deleteStatement, id)
+		return 500, data
+	}
 
 	// Başarılı response için bilgi sayfası oluşturuluyor
 	info := new(Info)
-	info.InfoConstructer(true, 201, "data registration successful")
+	info.InfoConstructer(true, "data registration successful")
 	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
 
 	data, err := json.Marshal(infoPage) // InfoPage nesnesi json'a parse ediliyor.

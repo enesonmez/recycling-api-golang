@@ -18,7 +18,7 @@ func CheckEror(err error) {
 func JsonError(err error, status int, message string) (bool, []byte) { // true dönerse handlers return edecek
 	if err != nil {
 		info := new(Info)
-		info.InfoConstructer(false, status, message)     // Info nesnesine değerler setleniyor.
+		info.InfoConstructer(false, message)             // Info nesnesine değerler setleniyor.
 		infoPage := map[string]interface{}{"info": info} // Hata sayfası oluşturuldu.
 		data, err := json.Marshal(infoPage)              // Map parse edildi.
 		CheckEror(err)

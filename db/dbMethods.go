@@ -3,17 +3,23 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"os"
+	"strconv"
+
+	//. "oyeco-api/models/config"
 
 	_ "github.com/lib/pq"
 )
 
 // Veritabanı bilgilerini nesne değişkenleri ile eşitler.
 func (db *Db) Assign() { // localhost postgres 123456789 upcycling => johnny.heliohost.org enesonme_local A25.pSt13Cd; enesonme_upcycling
-	db.dbHost = "johnny.heliohost.org"
-	db.dbPort = 5432
-	db.dbUserName = "enesonme_local"
-	db.dbPass = "A25.pSt13Cd;"
-	db.dbName = "enesonme_upcycling"
+	/*conf := new(Config) // Konfigürasyon dosyasındaki değişkenleri kullanmak için nesne kullanılmıştır.
+	conf.ConfigRead()*/
+	db.dbHost = os.Getenv("DBHost")
+	db.dbPort, _ = strconv.Atoi(os.Getenv("DBPort"))
+	db.dbUserName = os.Getenv("DBUsername")
+	db.dbPass = os.Getenv("DBPassword")
+	db.dbName = os.Getenv("DBName")
 }
 
 // Veritabanı bağlantısı

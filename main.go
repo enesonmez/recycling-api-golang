@@ -13,7 +13,10 @@ import (
 )
 
 func main() {
-	DBCreate() // DB bağlantısı kurulup tablo kontrolleri yapılıyor.
+	// Environment variable set
+	SetEnv() //helpers/generally.go
+	// DB bağlantısı kurulup tablo kontrolleri yapılıyor.
+	DBCreate() //helpers/generally.go
 
 	// Port ayarlaması yapılıyor.
 	port := os.Getenv("PORT")

@@ -1,0 +1,10 @@
+{
+    "dbHost" : "johnny.heliohost.org",
+    "dbPort" : 5432,
+    "dbUsername" : "enesonme_local",
+    "dbPassword" : "A25.pSt13Cd;",
+    "dbName" : "enesonme_upcycling",
+    "email" : "pythonwebtr@gmail.com",
+    "emailPassword" : "123456789deneme",
+    "baseURL" : "https://appupcycling.herokuapp.com"
+}
