@@ -108,7 +108,7 @@ func (user *User) Create() (int, []byte) { // (int, []byte) => (statusCode, resp
 	msg := fmt.Sprintf("İyi Günler %s  %s,  \nBu mail hesabınızı aktif edebilmeniz için atılmaktadır. Hesabınızı aktif etmek için aşağıdaki maile tıklayabilirsiniz. (Lütfen linke tıklanmıyorsa kopyalayıp tarayıcınızda açın)\n\n%s/api/users/activation/%s \n\nSevgilerle,\nUpcycling", user.FirstName, user.LastName, os.Getenv("BaseURL"), encryptID)
 	errmail := SendMail(user.Email, "Hesap Aktivasyon Maili", msg)
 	if value, data := JsonError(errmail, 500, "unexpected to send email error"); value == true {
-		deleteStatement := `DELETE FROM users WHERE id = $1;` // eğer aktivasyon maili atılamazsa kayıt silinir.
+		deleteStatement := `DELETE FROM users WHERE uID = $1;` // eğer aktivasyon maili atılamazsa kayıt silinir.
 		db.Exec(deleteStatement, id)
 		return 500, data
 	}

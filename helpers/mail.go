@@ -22,7 +22,7 @@ func SendMail(to, subject, content string) error {
 		content + "\r\n"
 
 	// smtp server configuration.
-	host := "smtp.gmail.com"
+	host := "mail.enesonmez.com"
 	port := "587"
 	// Authentication.
 	auth := smtp.PlainAuth("", from, password, host)
