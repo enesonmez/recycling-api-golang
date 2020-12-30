@@ -134,20 +134,19 @@ func (user *User) Activation(id string) (int, []byte) {
 		return 500, data
 	}
 
-	decoded, _ := hex.DecodeString(id)
+	decoded, _ := hex.DecodeString(id) // Şifrelenmiş id numarasını çözerek int hale çevirme
 	decrypt, errDecr := Decrypt([]byte(decoded))
 	if value, data := JsonError(errDecr, 400, "wrong url"); value == true {
-		return 500, data
+		return 400, data
 	}
-	identity, errDecr := strconv.Atoi(string(decrypt))
-	fmt.Println(identity)
+	identity, _ := strconv.Atoi(string(decrypt))
 
-	sqlStatement := `UPDATE users SET isVerifyEmail = $2 WHERE uID = $1`
-	tx, _ := db.Begin() // Rollback yapmak için transaction başlatılıyor.
+	sqlStatement := `UPDATE users SET isVerifyEmail = $2 WHERE uID = $1` // Güncelleme işlemi
+	tx, _ := db.Begin()                                                  // Rollback yapmak için transaction başlatılıyor.
 	_, err := db.Exec(sqlStatement, identity, true)
 	if value, data := JsonError(err, 404, "no user registration was found, operation failed"); value == true {
 		tx.Rollback() // Rollback yapılıyor.
-		return 500, data
+		return 404, data
 	}
 	_ = tx.Commit()  // Transaction durduruldu.
 	defer db.Close() // DB bağlantısı kapatıldı.
@@ -157,6 +156,52 @@ func (user *User) Activation(id string) (int, []byte) {
 	info.InfoConstructer(true, "did activation, operatin succesful")
 	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
+}
+
+func (user *User) SignIn() (int, []byte) {
+	if IsEmpty(user.Email) || IsEmpty(user.Password) { // Gönderilen veriler boş mu?
+		if value, data := JsonError(errors.New("error"), 400, "expected values not sent, check your values"); value == true {
+			return 400, data
+		}
+	}
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "database connection error"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+	var temp string // şifrelenmiş password'ü tutacak.
+	sqlStatement := `select * from users where email=$1`
+	err := db.QueryRow(sqlStatement, user.Email).Scan(&user.ID, &user.FirstName, &user.LastName, &user.PhoneNumber, &user.Email, &temp, &user.Gender, &user.BirthDay, &user.RecordTime, &user.IsVerifyEmail, &user.IsBlock)
+	if value, data := JsonError(err, 404, "no user registration was found, operation failed"); value == true {
+		return 404, data
+	}
+
+	if user.IsBlock {
+		if value, data := JsonError(errors.New("error"), 400, "user blocked"); value == true {
+			return 400, data
+		}
+	} else if user.IsVerifyEmail == false {
+		if value, data := JsonError(errors.New("error"), 400, "no user activation"); value == true {
+			return 400, data
+		}
+	}
+	decoded, _ := hex.DecodeString(temp) // Şifrelenmiş id numarasını çözerek int hale çevirme
+	pass, _ := Decrypt([]byte(decoded))
+	if user.Password != string(pass) {
+		if value, data := JsonError(errors.New("error"), 400, "password is wrong"); value == true {
+			return 400, data
+		}
+	}
+	user.Password = temp
+
+	info := new(Info)
+	info.InfoConstructer(true, "sign in succesfully")
+	infoPage := map[string]interface{}{"info": info, "content": user} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                                 // InfoPage nesnesi json'a parse ediliyor.
 
 	return 200, data
 }

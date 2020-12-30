@@ -29,7 +29,8 @@ func main() {
 	// Handle'lar belirleniyor.
 	r := mux.NewRouter().StrictSlash(true) // "/api/users/register/" bu şekilde de çalışır.
 	r.Handle("/api/users/register", IsAuthorized(RegisterHandler)).Methods("POST")
-	r.HandleFunc("/api/users/activation/{id}", SignInHandler).Methods("GET")
+	r.Handle("/api/users/signin", IsAuthorized(SignInHandler)).Methods("POST")
+	r.HandleFunc("/api/users/activation/{id}", ActivationHandler).Methods("GET")
 
 	server := &http.Server{
 		Addr:    ":" + port,
