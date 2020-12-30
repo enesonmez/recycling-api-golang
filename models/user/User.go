@@ -13,7 +13,7 @@ type User struct {
 	Password      string    `json:"password"`
 	Gender        string    `json:"gender"`
 	BirthDay      time.Time `json:"birthDay"`
-	RecordTime    time.Time `json:"recordTime"`
-	IsVerifyEmail bool      `json:"isVerifyEmail"`
-	IsBlock       bool      `json:"isBlock"`
+	RecordTime    time.Time `json:"-"`
+	IsVerifyEmail bool      `json:"-"`
+	IsBlock       bool      `json:"-"`
 }

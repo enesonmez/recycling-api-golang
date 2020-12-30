@@ -29,9 +29,20 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	Respond(w, status, resp)      // Respond fonksiyonu ile response yollanır.
 }
 
-func SignInHandler(w http.ResponseWriter, r *http.Request) {
+func ActivationHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	vars := mux.Vars(r)
 	status, resp := user.Activation(vars["id"]) // resp değişkenine json verisi alınır.
 	Respond(w, status, resp)                    // Respond fonksiyonu ile
+}
+
+func SignInHandler(w http.ResponseWriter, r *http.Request) {
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)                                                                               // Body içeriği User modeli ile eşleştirliyor.
+	if value, data := JsonError(err, 500, "unexpected json parse error (check the json variable data types)"); value == true { // Hata kontrolü
+		Respond(w, 500, data)
+		return
+	}
+	status, resp := user.SignIn() // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)      // Respond fonksiyonu ile response yollanır.
 }
