@@ -29,21 +29,21 @@ func Encrypt(data []byte) []byte {
 	return ciphertext
 }
 
-func Decrypt(data []byte) []byte {
+func Decrypt(data []byte) ([]byte, error) {
 	key := []byte(createHash("AlKi45.ghb1uy"))
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err.Error())
+		return []byte(""), err
 	}
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		return []byte(""), err
 	}
 	nonceSize := gcm.NonceSize()
 	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		panic(err.Error())
+		return []byte(""), err
 	}
-	return plaintext
+	return plaintext, nil
 }

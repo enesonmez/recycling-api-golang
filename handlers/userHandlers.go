@@ -8,6 +8,8 @@ import (
 	. "oyeco-api/helpers"
 	. "oyeco-api/helpers/error"
 	. "oyeco-api/models/user"
+
+	"github.com/gorilla/mux"
 )
 
 // HTTP POST - /api/users/register
@@ -25,4 +27,11 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	status, resp := user.Create() // resp değişkenine json verisi alınır.
 	Respond(w, status, resp)      // Respond fonksiyonu ile response yollanır.
+}
+
+func SignInHandler(w http.ResponseWriter, r *http.Request) {
+	var user User
+	vars := mux.Vars(r)
+	status, resp := user.Activation(vars["id"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                    // Respond fonksiyonu ile
 }

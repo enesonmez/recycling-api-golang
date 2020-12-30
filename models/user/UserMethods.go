@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -104,7 +105,7 @@ func (user *User) Create() (int, []byte) { // (int, []byte) => (statusCode, resp
 
 	// Mail yollama
 	encryptID := fmt.Sprintf("%x", Encrypt([]byte(strconv.Itoa(id)))) // Id şifrelenerek ekleniyor.
-	msg := fmt.Sprintf("İyi Günler %s  %s,  \nBu mail hesabınızı aktif edebilmeniz için atılmaktadır. Hesabınızı aktif etmek için aşağıdaki maile tıklayabilirsiniz. (Lütfen linke tıklanmıyorsa kopyalayıp tarayıcınızda açın)\n\n%s/users/activation/%s \n\nSevgilerle,\nUpcycling", user.FirstName, user.LastName, os.Getenv("BaseURL"), encryptID)
+	msg := fmt.Sprintf("İyi Günler %s  %s,  \nBu mail hesabınızı aktif edebilmeniz için atılmaktadır. Hesabınızı aktif etmek için aşağıdaki maile tıklayabilirsiniz. (Lütfen linke tıklanmıyorsa kopyalayıp tarayıcınızda açın)\n\n%s/api/users/activation/%s \n\nSevgilerle,\nUpcycling", user.FirstName, user.LastName, os.Getenv("BaseURL"), encryptID)
 	errmail := SendMail(user.Email, "Hesap Aktivasyon Maili", msg)
 	if value, data := JsonError(errmail, 500, "unexpected to send email error"); value == true {
 		deleteStatement := `DELETE FROM users WHERE id = $1;` // eğer aktivasyon maili atılamazsa kayıt silinir.
@@ -123,4 +124,39 @@ func (user *User) Create() (int, []byte) { // (int, []byte) => (statusCode, resp
 	}
 
 	return 201, data // Başarılı response return yapılıyor.
+}
+
+func (user *User) Activation(id string) (int, []byte) {
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "database connection error"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+
+	decoded, _ := hex.DecodeString(id)
+	decrypt, errDecr := Decrypt([]byte(decoded))
+	if value, data := JsonError(errDecr, 400, "wrong url"); value == true {
+		return 500, data
+	}
+	identity, errDecr := strconv.Atoi(string(decrypt))
+	fmt.Println(identity)
+
+	sqlStatement := `UPDATE users SET isVerifyEmail = $2 WHERE uID = $1`
+	tx, _ := db.Begin() // Rollback yapmak için transaction başlatılıyor.
+	_, err := db.Exec(sqlStatement, identity, true)
+	if value, data := JsonError(err, 404, "no user registration was found, operation failed"); value == true {
+		tx.Rollback() // Rollback yapılıyor.
+		return 500, data
+	}
+	_ = tx.Commit()  // Transaction durduruldu.
+	defer db.Close() // DB bağlantısı kapatıldı.
+
+	// Başarılı response için bilgi sayfası oluşturuluyor
+	info := new(Info)
+	info.InfoConstructer(true, "did activation, operatin succesful")
+	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
 }
