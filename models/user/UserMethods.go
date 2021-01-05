@@ -205,3 +205,27 @@ func (user *User) SignIn() (int, []byte) {
 
 	return 200, data
 }
+
+func (user *User) Update(id string) (int, []byte) {
+	temp, _ := strconv.Atoi(id)
+	user.SetuID(temp)
+	// Gönderilen değerler boş mu kontrolü
+	if err := user.IsEmptyStringValues(); err != nil {
+		if value, data := JsonError(err, 412, err.Error()); value == true {
+			return 412, data
+		}
+	}
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "database connection error"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+	sqlStatement := `update users set firstName=$1, lastName=$2, phoneNumber=$3, email=$4, gender=$5, birthDay=$6 where uID = $7`
+	_, err := db.Exec(sqlStatement, 1, user.FirstName, user.LastName, user.PhoneNumber, user.Email)
+	if value, data := JsonError(err, 404, "no user registration was found, operation failed"); value == true {
+		return 404, data
+	}
+	return temp, nil
+}
