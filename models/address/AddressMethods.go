@@ -21,8 +21,9 @@ func (address *Address) IsEmptyStringValues() error {
 	return nil
 }
 
-func (address *Address) Create(id string) (int, []byte) { // (int, []byte) => (statusCode, responseData)
-	temp, _ := strconv.Atoi(id)
+// Adres kaydı yapar
+func (address *Address) Create(userID string) (int, []byte) { // (int, []byte) => (statusCode, responseData)
+	temp, _ := strconv.Atoi(userID)
 	address.UserID = temp
 	// Gönderilen değerler boş mu kontrolü
 	if err := address.IsEmptyStringValues(); err != nil {
@@ -61,9 +62,12 @@ func (address *Address) Create(id string) (int, []byte) { // (int, []byte) => (s
 	return 201, data // Başarılı response return yapılıyor.
 }
 
-func (address *Address) Update(id string) (int, []byte) {
-	temp, _ := strconv.Atoi(id)
+// Adres güncellemei yapar
+func (address *Address) Update(userID, adrsID string) (int, []byte) {
+	temp, _ := strconv.Atoi(userID)
 	address.UserID = temp
+	temp, _ = strconv.Atoi(adrsID)
+	address.AID = temp
 	// Gönderilen değerler boş mu kontrolü
 	if err := address.IsEmptyStringValues(); err != nil {
 		if value, data := JsonError(err, 412, err.Error()); value == true {
@@ -91,6 +95,7 @@ func (address *Address) Update(id string) (int, []byte) {
 	return 200, data
 }
 
+// Kullanıcıya ait adresleri döndürür
 func (address *Address) Get(id string) (int, []byte) {
 	var adrs []Address
 	temp, _ := strconv.Atoi(id)
@@ -131,9 +136,11 @@ func (address *Address) Get(id string) (int, []byte) {
 	return 200, data
 }
 
-func (address *Address) Delete(id string) (int, []byte) {
-	temp, _ := strconv.Atoi(id)
+func (address *Address) Delete(userID, adrsID string) (int, []byte) {
+	temp, _ := strconv.Atoi(userID)
 	address.UserID = temp
+	temp, _ = strconv.Atoi(adrsID)
+	address.AID = temp
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()

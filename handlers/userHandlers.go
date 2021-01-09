@@ -76,7 +76,7 @@ func UserUpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	Respond(w, status, resp)                        // Respond fonksiyonu ile response yollanır.
 }
 
-// HTTP POST - /api/users/address/{id}
+// HTTP POST - /api/users/{userID}/address
 func UserAddressRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var address Address
 	vars := mux.Vars(r)
@@ -87,11 +87,11 @@ func UserAddressRegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, resp := address.Create(vars["id"]) // resp değişkenine json verisi alınır.
-	Respond(w, status, resp)                   // Respond fonksiyonu ile response yollanır.
+	status, resp := address.Create(vars["userID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                       // Respond fonksiyonu ile response yollanır.
 }
 
-// HTTP PUT - /api/users/address/{id}
+// HTTP PUT - /api/users/{userID}/address/{adrsID}
 func UserAddressUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	var address Address
 	vars := mux.Vars(r)
@@ -102,30 +102,24 @@ func UserAddressUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, resp := address.Update(vars["id"]) // resp değişkenine json verisi alınır.
-	Respond(w, status, resp)                   // Respond fonksiyonu ile response yollanır.
+	status, resp := address.Update(vars["userID"], vars["adrsID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                                       // Respond fonksiyonu ile response yollanır.
 }
 
-// HTTP GET - /api/users/address/{id}
+// HTTP GET - /api/users/{userID}/address
 func UserAddressGetHandler(w http.ResponseWriter, r *http.Request) {
 	var address Address
 	vars := mux.Vars(r)
 
-	status, resp := address.Get(vars["id"]) // resp değişkenine json verisi alınır.
-	Respond(w, status, resp)                // Respond fonksiyonu ile response yollanır.
+	status, resp := address.Get(vars["userID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                    // Respond fonksiyonu ile response yollanır.
 }
 
-// HTTP DELETE - /api/users/address/{id}
+// HTTP DELETE - /api/users/{userID}/address/{adrsID}
 func UserAddressDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	var address Address
 	vars := mux.Vars(r)
 
-	err := json.NewDecoder(r.Body).Decode(&address)                                                                          // Body içeriği User modeli ile eşleştirliyor.
-	if value, data := JsonError(err, 500, "beklenmeyen json parse hatası (json verilerinizi kontrol edin)"); value == true { // Hata kontrolü
-		Respond(w, 500, data)
-		return
-	}
-
-	status, resp := address.Delete(vars["id"]) // resp değişkenine json verisi alınır.
-	Respond(w, status, resp)                   // Respond fonksiyonu ile response yollanır.
+	status, resp := address.Delete(vars["userID"], vars["adrsID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                                       // Respond fonksiyonu ile response yollanır.
 }

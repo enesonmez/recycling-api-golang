@@ -34,10 +34,10 @@ func main() {
 	r.Handle("/api/users/updatePassword/{id}", IsAuthorized(UserUpdatePasswordHandler)).Methods("PUT")
 	r.HandleFunc("/api/users/activation/{id}", ActivationHandler).Methods("GET")
 
-	r.Handle("/api/users/address/{id}", IsAuthorized(UserAddressRegisterHandler)).Methods("POST")
-	r.Handle("/api/users/address/{id}", IsAuthorized(UserAddressUpdateHandler)).Methods("PUT")
-	r.Handle("/api/users/address/{id}", IsAuthorized(UserAddressGetHandler)).Methods("GET")
-	r.Handle("/api/users/address/{id}", IsAuthorized(UserAddressDeleteHandler)).Methods("DELETE")
+	r.Handle("/api/users/{userID}/address", IsAuthorized(UserAddressRegisterHandler)).Methods("POST")
+	r.Handle("/api/users/{userID}/address/{adrsID}", IsAuthorized(UserAddressUpdateHandler)).Methods("PUT")
+	r.Handle("/api/users/{userID}/address", IsAuthorized(UserAddressGetHandler)).Methods("GET")
+	r.Handle("/api/users/{userID}/address/{adrsID}", IsAuthorized(UserAddressDeleteHandler)).Methods("DELETE")
 
 	server := &http.Server{
 		Addr:    ":" + port,
