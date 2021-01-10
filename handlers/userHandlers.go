@@ -8,6 +8,7 @@ import (
 	. "oyeco-api/helpers"
 	. "oyeco-api/helpers/error"
 	. "oyeco-api/models/address"
+	. "oyeco-api/models/request"
 	. "oyeco-api/models/user"
 
 	"github.com/gorilla/mux"
@@ -122,4 +123,20 @@ func UserAddressDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 	status, resp := address.Delete(vars["userID"], vars["adrsID"]) // resp değişkenine json verisi alınır.
 	Respond(w, status, resp)                                       // Respond fonksiyonu ile response yollanır.
+}
+
+func UserRequestRegisterHandler(w http.ResponseWriter, r *http.Request) {
+	var request Request
+	vars := mux.Vars(r)
+	request.SetRequestCreateTime(time.Now())
+	request.SetState(1) // İstek bekleniyor.
+
+	err := json.NewDecoder(r.Body).Decode(&request)                                                                          // Body içeriği User modeli ile eşleştirliyor.
+	if value, data := JsonError(err, 500, "beklenmeyen json parse hatası (json verilerinizi kontrol edin)"); value == true { // Hata kontrolü
+		Respond(w, 500, data)
+		return
+	}
+
+	status, resp := request.Create(vars["userID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                       // Respond fonksiyonu ile response yollanır.
 }

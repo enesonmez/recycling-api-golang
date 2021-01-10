@@ -37,9 +37,11 @@ func (dbms *Db) Connect() (*sql.DB, error) {
 func (dbms *Db) CreateTables(db *sql.DB) error {
 	users := "CREATE TABLE IF NOT EXISTS users (uID SERIAL PRIMARY KEY NOT NULL, firstName VARCHAR (50) NOT NULL, lastName VARCHAR (60) NOT NULL, phoneNumber VARCHAR (18) NOT NULL UNIQUE, email VARCHAR (50) NOT NULL UNIQUE, password VARCHAR (256) NOT NULL, gender VARCHAR (15) NOT NULL, birthDay TIMESTAMP DEFAULT NULL, recordTime TIMESTAMP NOT NULL, isVerifyEmail boolean NOT NULL, isBlock boolean NOT NULL);"
 	address := "CREATE TABLE IF NOT EXISTS address (aID SERIAL PRIMARY KEY NOT NULL, fullAddress TEXT NOT NULL, district TEXT NOT NULL, city TEXT NOT NULL, postcode VARCHAR (50) NOT NULL, userID INT, FOREIGN KEY (userID) REFERENCES users(uID));"
+	requests := "CREATE TABLE IF NOT EXISTS requests (reqID SERIAL PRIMARY KEY NOT NULL, userID INT NOT NULL, addressID INT NOT NULL, requestCreateTime TIMESTAMP NOT NULL, state INT NOT NULL, FOREIGN KEY (userID) REFERENCES users(uID), FOREIGN KEY (addressID) REFERENCES address(aID))"
 	_, err := db.Exec(users)
 	_, errAddress := db.Exec(address)
-	if err != nil || errAddress != nil {
+	_, errRequest := db.Exec(requests)
+	if err != nil || errAddress != nil || errRequest != nil {
 		fmt.Println(errAddress.Error())
 		os.Exit(1)
 		return err

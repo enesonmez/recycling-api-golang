@@ -39,6 +39,8 @@ func main() {
 	r.Handle("/api/users/{userID}/address", IsAuthorized(UserAddressGetHandler)).Methods("GET")
 	r.Handle("/api/users/{userID}/address/{adrsID}", IsAuthorized(UserAddressDeleteHandler)).Methods("DELETE")
 
+	r.Handle("/api/users/{userID}/requests", IsAuthorized(UserRequestRegisterHandler)).Methods("POST")
+
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: r,
