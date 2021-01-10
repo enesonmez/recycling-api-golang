@@ -125,6 +125,7 @@ func UserAddressDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	Respond(w, status, resp)                                       // Respond fonksiyonu ile response yollanır.
 }
 
+// HTTP POST - /api/users/{userID}/requests
 func UserRequestRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var request Request
 	vars := mux.Vars(r)
@@ -139,4 +140,22 @@ func UserRequestRegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	status, resp := request.Create(vars["userID"]) // resp değişkenine json verisi alınır.
 	Respond(w, status, resp)                       // Respond fonksiyonu ile response yollanır.
+}
+
+// HTTP GET - /api/users/{userID}/requests
+func UserRequestGetHandler(w http.ResponseWriter, r *http.Request) {
+	var request Request
+	vars := mux.Vars(r)
+
+	status, resp := request.Get(vars["userID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                    // Respond fonksiyonu ile response yollanır.
+}
+
+// HTTP DELETE - /api/users/{userID}/requests/{reqID}
+func UserRequestDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	var request Request
+	vars := mux.Vars(r)
+
+	status, resp := request.Delete(vars["userID"], vars["reqID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                                      // Respond fonksiyonu ile response yollanır.
 }

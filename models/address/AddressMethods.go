@@ -117,7 +117,7 @@ func (address *Address) Get(id string) (int, []byte) {
 	for rows.Next() {
 		temp = 1
 		err = rows.Scan(&address.AID, &address.FullAddress, &address.District, &address.City, &address.Postcode, &address.UserID)
-		if value, data := JsonError(err, 404, "güncelleme işlemi başarısız"); value == true {
+		if value, data := JsonError(err, 404, "veri hatası"); value == true {
 			return 404, data
 		}
 		adrs = append(adrs, *address)

@@ -40,6 +40,8 @@ func main() {
 	r.Handle("/api/users/{userID}/address/{adrsID}", IsAuthorized(UserAddressDeleteHandler)).Methods("DELETE")
 
 	r.Handle("/api/users/{userID}/requests", IsAuthorized(UserRequestRegisterHandler)).Methods("POST")
+	r.Handle("/api/users/{userID}/requests", IsAuthorized(UserRequestGetHandler)).Methods("GET")
+	r.Handle("/api/users/{userID}/requests/{reqID}", IsAuthorized(UserRequestDeleteHandler)).Methods("DELETE")
 
 	server := &http.Server{
 		Addr:    ":" + port,

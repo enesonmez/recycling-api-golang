@@ -63,3 +63,71 @@ func (request *Request) Create(userID string) (int, []byte) { // (int, []byte) =
 
 	return 201, data // Başarılı response return yapılıyor.
 }
+
+func (request *Request) Get(userID string) (int, []byte) { // (int, []byte) => (statusCode, responseData)
+	var rqst []Request
+	temp, _ := strconv.Atoi(userID)
+	request.UserID = temp
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+
+	// Kullanıcı adresleri getirilmesi için
+	rows, _ := db.Query("Select * from requests where userID = $1", request.UserID)
+
+	temp = 0
+	for rows.Next() {
+		temp = 1
+		err := rows.Scan(&request.ReqID, &request.UserID, &request.AddressID, &request.RequestCreateTime, &request.State)
+		if value, data := JsonError(err, 404, "veri hatası"); value == true {
+			return 404, data
+		}
+		rqst = append(rqst, *request)
+	}
+	if temp == 0 {
+		if value, data := JsonError(errors.New("error"), 404, "böyle bir kullanıcı bulunmuyor veya hiçbir istek yok"); value == true {
+			return 404, data
+		}
+	}
+
+	info := new(Info)
+	info.InfoConstructer(true, "kullanıcı istekleri")
+	infoPage := map[string]interface{}{"info": info, "content": rqst} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                                 // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
+}
+
+func (request *Request) Delete(userID, reqID string) (int, []byte) {
+	temp, _ := strconv.Atoi(userID)
+	request.UserID = temp
+	temp, _ = strconv.Atoi(reqID)
+	request.ReqID = temp
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+	sqlStatement := `DELETE FROM requests WHERE reqID = $1 and userID = $2`
+	res, _ := db.Exec(sqlStatement, request.ReqID, request.UserID)
+
+	count, _ := res.RowsAffected()
+	if count == 0 {
+		if value, data := JsonError(errors.New("silme"), 404, "silme işlemi başarısız"); value == true {
+			return 404, data
+		}
+	}
+
+	info := new(Info)
+	info.InfoConstructer(true, "silme işlemi başarılı")
+	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
+}
