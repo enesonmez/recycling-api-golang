@@ -178,18 +178,18 @@ func (user *User) SignIn() (int, []byte) {
 	}
 
 	if user.IsBlock {
-		if value, data := JsonError(errors.New("error"), 400, "user blocked"); value == true {
+		if value, data := JsonError(errors.New("error"), 400, "kullanıcı bloklanmış"); value == true {
 			return 400, data
 		}
 	} else if user.IsVerifyEmail == false {
-		if value, data := JsonError(errors.New("error"), 400, "no user activation"); value == true {
+		if value, data := JsonError(errors.New("error"), 400, "kullanıcı aktivasyonu yapılmamış"); value == true {
 			return 400, data
 		}
 	}
 	decoded, _ := hex.DecodeString(temp) // Şifrelenmiş id numarasını çözerek int hale çevirme
 	pass, _ := Decrypt([]byte(decoded))
 	if user.Password != string(pass) {
-		if value, data := JsonError(errors.New("error"), 400, "password is wrong"); value == true {
+		if value, data := JsonError(errors.New("error"), 400, "şifre hatalı"); value == true {
 			return 400, data
 		}
 	}

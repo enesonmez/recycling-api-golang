@@ -43,6 +43,11 @@ func main() {
 	r.Handle("/api/users/{userID}/requests", IsAuthorized(UserRequestGetHandler)).Methods("GET")
 	r.Handle("/api/users/{userID}/requests/{reqID}", IsAuthorized(UserRequestDeleteHandler)).Methods("DELETE")
 
+	r.Handle("/api/manageworkers/signin", IsAuthorized(ManageWorkerSignInHandler)).Methods("POST")
+
+	r.Handle("/api/fieldworkers/register", IsAuthorized(FieldWorkerRegisterHandler)).Methods("POST")
+	r.Handle("/api/fieldworkers", IsAuthorized(FieldWorkerAllGetHandler)).Methods("GET")
+
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: r,
