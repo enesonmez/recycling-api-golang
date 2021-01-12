@@ -11,6 +11,8 @@ import (
 	//. "oyeco-api/models/address"
 	//. "oyeco-api/models/request"
 	. "oyeco-api/models/worker"
+
+	"github.com/gorilla/mux"
 )
 
 // HTTP POST - /api/manageworkers/signin
@@ -46,4 +48,25 @@ func FieldWorkerAllGetHandler(w http.ResponseWriter, r *http.Request) {
 	var mngWorker Worker
 	status, resp := mngWorker.AllGet() // resp değişkenine json verisi alınır.
 	Respond(w, status, resp)           // Respond fonksiyonu ile response yollanır.
+}
+
+// HTTP DELETE - /api/fieldworkers/{wID}
+func FieldWorkerDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	var mngWorker Worker
+	vars := mux.Vars(r)
+	status, resp := mngWorker.Delete(vars["wID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                      // Respond fonksiyonu ile response yollanır.
+}
+
+// HTTP PUT - /api/fieldworkers/{wID}
+func FieldWorkerUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	var mngWorker Worker
+	vars := mux.Vars(r)
+	err := json.NewDecoder(r.Body).Decode(&mngWorker)                                                                        // Body içeriği User modeli ile eşleştirliyor.
+	if value, data := JsonError(err, 500, "beklenmeyen json parse hatası (json verilerinizi kontrol edin)"); value == true { // Hata kontrolü
+		Respond(w, 500, data)
+		return
+	}
+	status, resp := mngWorker.Update(vars["wID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                      // Respond fonksiyonu ile response yollanır.
 }

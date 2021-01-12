@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	. "oyeco-api/db"
@@ -27,6 +28,13 @@ func (worker *Worker) SetStatus(status int) {
 // String değerlerden en az biri boş mu kontrolü
 func (worker *Worker) IsEmptyStringValues() error {
 	if IsEmpty(worker.FirstName) || IsEmpty(worker.LastName) || IsEmpty(worker.PhoneNumber) || IsEmpty(worker.Email) || IsEmpty(worker.Password) || IsEmpty(worker.Gender) || worker.BirthDay.IsZero() {
+		return errors.New("beklenen değerler gönderilmemiş, değerleri kontol edin") // beklenen değerler gönderilmedi, değerlerinizi kontrol edin
+	}
+	return nil
+}
+
+func (worker *Worker) IsEmptyUpdate() error {
+	if IsEmpty(worker.FirstName) || IsEmpty(worker.LastName) || IsEmpty(worker.PhoneNumber) || IsEmpty(worker.Email) || IsEmpty(worker.Password) || worker.BirthDay.IsZero() {
 		return errors.New("beklenen değerler gönderilmemiş, değerleri kontol edin") // beklenen değerler gönderilmedi, değerlerinizi kontrol edin
 	}
 	return nil
@@ -139,6 +147,68 @@ func (worker *Worker) AllGet() (int, []byte) {
 	info.InfoConstructer(true, "saha çalışanı listesi")
 	infoPage := map[string]interface{}{"info": info, "content": wrkr} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                                 // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
+}
+
+func (worker *Worker) Delete(wID string) (int, []byte) {
+	temp, _ := strconv.Atoi(wID)
+	worker.WID = temp
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+	sqlStatement := `DELETE FROM workers WHERE wID = $1 AND status = 0`
+	res, err := db.Exec(sqlStatement, worker.WID)
+	if value, data := JsonError(err, 404, "silme işlemi başarısız"); value == true {
+		return 404, data
+	}
+	count, _ := res.RowsAffected()
+	if count == 0 {
+		if value, data := JsonError(errors.New("silme"), 404, "silme işlemi başarısız"); value == true {
+			return 404, data
+		}
+	}
+
+	info := new(Info)
+	info.InfoConstructer(true, "silme işlemi başarılı")
+	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
+}
+
+func (worker *Worker) Update(wID string) (int, []byte) {
+	temp, _ := strconv.Atoi(wID)
+	worker.WID = temp
+	// Gönderilen değerler boş mu kontrolü
+	if err := worker.IsEmptyUpdate(); err != nil {
+		if value, data := JsonError(err, 412, err.Error()); value == true {
+			return 412, data
+		}
+	}
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+	encryptPass := fmt.Sprintf("%x", Encrypt([]byte(worker.Password)))
+	sqlStatement := `update workers set firstName=$1, lastName=$2, birthDay=$3, email=$4, password=$5, phoneNumber=$6 where wID = $7 and status = 0 RETURNING wID`
+	err := db.QueryRow(sqlStatement, worker.FirstName, worker.LastName, worker.BirthDay, worker.Email, encryptPass, worker.PhoneNumber, worker.WID).Scan(&temp)
+	if value, data := JsonError(err, 404, "güncelleme işlemi başarısız"); value == true {
+		return 404, data
+	}
+	worker.Password = encryptPass
+
+	info := new(Info)
+	info.InfoConstructer(true, "güncelleme işlemi başarılı")
+	infoPage := map[string]interface{}{"info": info, "content": worker} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                                   // InfoPage nesnesi json'a parse ediliyor.
 
 	return 200, data
 }
