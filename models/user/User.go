@@ -15,5 +15,5 @@ type User struct {
 	BirthDay      time.Time `json:"birthDay"`
 	RecordTime    time.Time `json:"-"`
 	IsVerifyEmail bool      `json:"-"`
-	IsBlock       bool      `json:"-"`
+	IsBlock       bool      `json:"isBlock"`
 }

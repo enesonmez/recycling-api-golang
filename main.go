@@ -33,6 +33,8 @@ func main() {
 	r.Handle("/api/users/update/{id}", IsAuthorized(UserUpdateHandler)).Methods("PUT")
 	r.Handle("/api/users/updatePassword/{id}", IsAuthorized(UserUpdatePasswordHandler)).Methods("PUT")
 	r.HandleFunc("/api/users/activation/{id}", ActivationHandler).Methods("GET")
+	r.Handle("/api/users", IsAuthorized(UserAllGetHandler)).Methods("GET")
+	r.Handle("/api/users/{userID}", IsAuthorized(UserAllGetHandler)).Methods("GET")
 
 	r.Handle("/api/users/{userID}/address", IsAuthorized(UserAddressRegisterHandler)).Methods("POST")
 	r.Handle("/api/users/{userID}/address/{adrsID}", IsAuthorized(UserAddressUpdateHandler)).Methods("PUT")

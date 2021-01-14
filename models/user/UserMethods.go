@@ -1,6 +1,7 @@
 package user
 
 import (
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -260,6 +261,50 @@ func (user *User) UpdatePassword(id string) (int, []byte) {
 	info.InfoConstructer(true, "güncelleme işlemi başarılı")
 	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
+}
+
+// userID'de değer varsa kullanıcı bilgilerini yoksa tüm kullanıcı bilgilerini getirir.
+func (user *User) Get(userID string) (int, []byte) {
+	var usr []User
+	var rows *sql.Rows
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+
+	if userID != "" {
+		temp, _ := strconv.Atoi(userID)
+		user.SetuID(temp)
+		rows, _ = db.Query("Select * from users where uID = $1", user.ID)
+	} else {
+		// Kullanıcı bilgileri getirilmesi için
+		rows, _ = db.Query("Select * from users")
+	}
+
+	temp := 0
+	for rows.Next() {
+		temp = 1
+		err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.PhoneNumber, &user.Email, &user.Password, &user.Gender, &user.BirthDay, &user.RecordTime, &user.IsVerifyEmail, &user.IsBlock)
+		if value, data := JsonError(err, 404, "beklenmeyen veri hatası"); value == true {
+			return 404, data
+		}
+		usr = append(usr, *user)
+	}
+	if temp == 0 {
+		if value, data := JsonError(errors.New("error"), 404, "sistemde kayıtlı kullanıcı bulunmuyor"); value == true {
+			return 404, data
+		}
+	}
+
+	info := new(Info)
+	info.InfoConstructer(true, "kullanıcı bilgileri")
+	infoPage := map[string]interface{}{"info": info, "content": usr} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                                // InfoPage nesnesi json'a parse ediliyor.
 
 	return 200, data
 }

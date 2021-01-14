@@ -77,6 +77,15 @@ func UserUpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	Respond(w, status, resp)                        // Respond fonksiyonu ile response yollanır.
 }
 
+// HTTP GET - /api/users
+func UserAllGetHandler(w http.ResponseWriter, r *http.Request) {
+	var user User
+	vars := mux.Vars(r)
+
+	status, resp := user.Get(vars["userID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                 // Respond fonksiyonu ile response yollanır.
+}
+
 // HTTP POST - /api/users/{userID}/address
 func UserAddressRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var address Address
