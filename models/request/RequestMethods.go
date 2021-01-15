@@ -50,11 +50,12 @@ func (request *Request) Create(userID string) (int, []byte) { // (int, []byte) =
 		return 500, data
 	}
 	defer db.Close() // DB bağlantısı kapatıldı.
+	request.ReqID = ids
 
 	// Başarılı response için bilgi sayfası oluşturuluyor
 	info := new(Info)
 	info.InfoConstructer(true, "veri kaydı başarılı")
-	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
+	infoPage := map[string]interface{}{"info": info, "content": request} // Response sayfası oluşturuldu ve değerleri işlendi.
 
 	data, err := json.Marshal(infoPage) // InfoPage nesnesi json'a parse ediliyor.
 	if value, data := JsonError(err, 500, "beklenmeyen json parse hatası"); value == true {
