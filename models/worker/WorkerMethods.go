@@ -92,22 +92,22 @@ func (worker *Worker) FieldWorkerSignIn() (int, []byte) {
 	defer db.Close()
 	var temp string // şifrelenmiş password'ü tutacak.
 	sqlStatement := `select * from workers where status = $1 and email = $2`
-	err := db.QueryRow(sqlStatement, 1, worker.Email).Scan(&worker.WID, &worker.FirstName, &worker.LastName, &worker.PhoneNumber, &worker.Email, &temp, &worker.Gender, &worker.BirthDay, &worker.RecordTime, &worker.Status)
-	if value, data := JsonError(err, 404, "yönetici kaydı bulunamadı, işlem başarısız"); value == true {
+	err := db.QueryRow(sqlStatement, 0, worker.Email).Scan(&worker.WID, &worker.FirstName, &worker.LastName, &worker.PhoneNumber, &worker.Email, &temp, &worker.Gender, &worker.BirthDay, &worker.RecordTime, &worker.Status)
+	if value, data := JsonError(err, 404, "saha calisani kaydi bulunamadi, islem basarisiz"); value == true {
 		return 404, data
 	}
 
 	decoded, _ := hex.DecodeString(temp) // Şifrelenmiş id numarasını çözerek gerçek şifre hale çevirme
 	pass, _ := Decrypt([]byte(decoded))
 	if worker.Password != string(pass) {
-		if value, data := JsonError(errors.New("error"), 400, "şifre hatalı"); value == true {
+		if value, data := JsonError(errors.New("error"), 400, "sifre hatalı"); value == true {
 			return 400, data
 		}
 	}
 	worker.Password = temp
 
 	info := new(Info)
-	info.InfoConstructer(true, "giriş başarılı")
+	info.InfoConstructer(true, "giris basarili")
 	infoPage := map[string]interface{}{"info": info, "content": worker} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                                   // InfoPage nesnesi json'a parse ediliyor.
 
