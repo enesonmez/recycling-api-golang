@@ -10,6 +10,8 @@ import (
 	//. "oyeco-api/models/address"
 	//. "oyeco-api/models/request"
 	. "oyeco-api/models/route"
+
+	"github.com/gorilla/mux"
 )
 
 // HTTP POST - /api/routes/register
@@ -22,4 +24,13 @@ func RouteRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	status, resp := route.Create() // resp değişkenine json verisi alınır.
 	Respond(w, status, resp)       // Respond fonksiyonu ile response yollanır.
+}
+
+// HTTP POST - /api/routes/register
+func RouteGetHandler(w http.ResponseWriter, r *http.Request) {
+	var route Route
+	vars := mux.Vars(r)
+
+	status, resp := route.Get(vars["fwID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                // Respond fonksiyonu ile response yollanır.
 }

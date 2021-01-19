@@ -28,42 +28,42 @@ func (worker *Worker) SetStatus(status int) {
 // String değerlerden en az biri boş mu kontrolü
 func (worker *Worker) IsEmptyStringValues() error {
 	if IsEmpty(worker.FirstName) || IsEmpty(worker.LastName) || IsEmpty(worker.PhoneNumber) || IsEmpty(worker.Email) || IsEmpty(worker.Password) || IsEmpty(worker.Gender) || worker.BirthDay.IsZero() {
-		return errors.New("beklenen değerler gönderilmemiş, değerleri kontol edin") // beklenen değerler gönderilmedi, değerlerinizi kontrol edin
+		return errors.New("beklenen degerler gonderilmemis, degerleri kontol edin") // beklenen değerler gönderilmedi, değerlerinizi kontrol edin
 	}
 	return nil
 }
 
 func (worker *Worker) IsEmptyUpdate() error {
 	if IsEmpty(worker.FirstName) || IsEmpty(worker.LastName) || IsEmpty(worker.PhoneNumber) || IsEmpty(worker.Email) || IsEmpty(worker.Password) || worker.BirthDay.IsZero() {
-		return errors.New("beklenen değerler gönderilmemiş, değerleri kontol edin") // beklenen değerler gönderilmedi, değerlerinizi kontrol edin
+		return errors.New("beklenen degerler gonderilmemis, degerleri kontol edin") // beklenen değerler gönderilmedi, değerlerinizi kontrol edin
 	}
 	return nil
 }
 
 func (worker *Worker) ManagerSignIn() (int, []byte) {
 	if IsEmpty(worker.Email) || IsEmpty(worker.Password) { // Gönderilen veriler boş mu?
-		if value, data := JsonError(errors.New("error"), 400, "beklenen değerler gönderilmemiş, değerleri kontrol edin"); value == true {
+		if value, data := JsonError(errors.New("error"), 400, "beklenen değerler gonderilmemis, degerleri kontrol edin"); value == true {
 			return 400, data
 		}
 	}
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 	defer db.Close()
 	var temp string // şifrelenmiş password'ü tutacak.
 	sqlStatement := `select * from workers where status = $1 and email = $2`
 	err := db.QueryRow(sqlStatement, 1, worker.Email).Scan(&worker.WID, &worker.FirstName, &worker.LastName, &worker.PhoneNumber, &worker.Email, &temp, &worker.Gender, &worker.BirthDay, &worker.RecordTime, &worker.Status)
-	if value, data := JsonError(err, 404, "yönetici kaydı bulunamadı, işlem başarısız"); value == true {
+	if value, data := JsonError(err, 404, "yonetici kaydı bulunamadi, islem basarisiz"); value == true {
 		return 404, data
 	}
 
 	decoded, _ := hex.DecodeString(temp) // Şifrelenmiş id numarasını çözerek gerçek şifre hale çevirme
 	pass, _ := Decrypt([]byte(decoded))
 	if worker.Password != string(pass) {
-		if value, data := JsonError(errors.New("error"), 400, "şifre hatalı"); value == true {
+		if value, data := JsonError(errors.New("error"), 400, "sifre hatali"); value == true {
 			return 400, data
 		}
 	}
@@ -79,14 +79,14 @@ func (worker *Worker) ManagerSignIn() (int, []byte) {
 
 func (worker *Worker) FieldWorkerSignIn() (int, []byte) {
 	if IsEmpty(worker.Email) || IsEmpty(worker.Password) { // Gönderilen veriler boş mu?
-		if value, data := JsonError(errors.New("error"), 400, "beklenen değerler gönderilmemiş, değerleri kontrol edin"); value == true {
+		if value, data := JsonError(errors.New("error"), 400, "beklenen degerler gonderilmemis, degerleri kontrol edin"); value == true {
 			return 400, data
 		}
 	}
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 	defer db.Close()
@@ -100,7 +100,7 @@ func (worker *Worker) FieldWorkerSignIn() (int, []byte) {
 	decoded, _ := hex.DecodeString(temp) // Şifrelenmiş id numarasını çözerek gerçek şifre hale çevirme
 	pass, _ := Decrypt([]byte(decoded))
 	if worker.Password != string(pass) {
-		if value, data := JsonError(errors.New("error"), 400, "sifre hatalı"); value == true {
+		if value, data := JsonError(errors.New("error"), 400, "sifre hatali"); value == true {
 			return 400, data
 		}
 	}
@@ -124,7 +124,7 @@ func (worker *Worker) Create() (int, []byte) { // (int, []byte) => (statusCode, 
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 
@@ -135,18 +135,18 @@ func (worker *Worker) Create() (int, []byte) { // (int, []byte) => (statusCode, 
 	id := 0
 	encryptPass := fmt.Sprintf("%x", Encrypt([]byte(worker.Password)))
 	err := db.QueryRow(sqlStatement, worker.FirstName, worker.LastName, worker.PhoneNumber, worker.Email, encryptPass, worker.Gender, worker.BirthDay, worker.RecordTime, worker.Status).Scan(&id)
-	if value, data := JsonError(err, 412, "email veya telefon sistemde kayıtlı ya da veri tipi boyutları fazla"); value == true {
+	if value, data := JsonError(err, 412, "email veya telefon sistemde kayitli ya da veri tipi boyutlari fazla"); value == true {
 		return 500, data
 	}
 	defer db.Close() // DB bağlantısı kapatıldı.
 
 	// Başarılı response için bilgi sayfası oluşturuluyor
 	info := new(Info)
-	info.InfoConstructer(true, "veri kaydı başarılı")
+	info.InfoConstructer(true, "veri kaydi basarili")
 	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
 
 	data, err := json.Marshal(infoPage) // InfoPage nesnesi json'a parse ediliyor.
-	if value, data := JsonError(err, 500, "beklenmedik json parse hatası"); value == true {
+	if value, data := JsonError(err, 500, "beklenmedik json parse hatasi"); value == true {
 		return 500, data
 	}
 
@@ -158,7 +158,7 @@ func (worker *Worker) AllGet() (int, []byte) {
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 	defer db.Close()
@@ -169,19 +169,19 @@ func (worker *Worker) AllGet() (int, []byte) {
 	for rows.Next() {
 		temp = 1
 		err := rows.Scan(&worker.WID, &worker.FirstName, &worker.LastName, &worker.PhoneNumber, &worker.Email, &worker.Password, &worker.Gender, &worker.BirthDay, &worker.RecordTime, &worker.Status)
-		if value, data := JsonError(err, 404, "veri hatası"); value == true {
+		if value, data := JsonError(err, 404, "veri hatasi"); value == true {
 			return 404, data
 		}
 		wrkr = append(wrkr, *worker)
 	}
 	if temp == 0 {
-		if value, data := JsonError(errors.New("error"), 404, "sistemde kayıtlı saha çalışanı bulunmamaktadır"); value == true {
+		if value, data := JsonError(errors.New("error"), 404, "sistemde kayıtli saha calisani bulunmamaktadir"); value == true {
 			return 404, data
 		}
 	}
 
 	info := new(Info)
-	info.InfoConstructer(true, "saha çalışanı listesi")
+	info.InfoConstructer(true, "saha calisani listesi")
 	infoPage := map[string]interface{}{"info": info, "content": wrkr} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                                 // InfoPage nesnesi json'a parse ediliyor.
 
@@ -194,24 +194,24 @@ func (worker *Worker) Delete(wID string) (int, []byte) {
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 	defer db.Close()
 	sqlStatement := `DELETE FROM workers WHERE wID = $1 AND status = 0`
 	res, err := db.Exec(sqlStatement, worker.WID)
-	if value, data := JsonError(err, 404, "silme işlemi başarısız"); value == true {
+	if value, data := JsonError(err, 404, "silme islemi basarisiz"); value == true {
 		return 404, data
 	}
 	count, _ := res.RowsAffected()
 	if count == 0 {
-		if value, data := JsonError(errors.New("silme"), 404, "silme işlemi başarısız"); value == true {
+		if value, data := JsonError(errors.New("silme"), 404, "silme islemi basarisiz"); value == true {
 			return 404, data
 		}
 	}
 
 	info := new(Info)
-	info.InfoConstructer(true, "silme işlemi başarılı")
+	info.InfoConstructer(true, "silme islemi basarili")
 	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                // InfoPage nesnesi json'a parse ediliyor.
 
@@ -230,7 +230,7 @@ func (worker *Worker) Update(wID string) (int, []byte) {
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 	defer db.Close()
@@ -243,7 +243,7 @@ func (worker *Worker) Update(wID string) (int, []byte) {
 	worker.Password = encryptPass
 
 	info := new(Info)
-	info.InfoConstructer(true, "güncelleme işlemi başarılı")
+	info.InfoConstructer(true, "guncelleme islemi basarili")
 	infoPage := map[string]interface{}{"info": info, "content": worker} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                                   // InfoPage nesnesi json'a parse ediliyor.
 

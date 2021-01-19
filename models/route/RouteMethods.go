@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	. "oyeco-api/db"
@@ -29,7 +30,7 @@ func (route *Route) Create() (int, []byte) { // (int, []byte) => (statusCode, re
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "veritabani baglantı hatasi"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 
@@ -85,9 +86,47 @@ func (route *Route) Create() (int, []byte) { // (int, []byte) => (statusCode, re
 	infoPage := map[string]interface{}{"info": info, "content": route} // Response sayfası oluşturuldu ve değerleri işlendi.
 
 	data, err := json.Marshal(infoPage) // InfoPage nesnesi json'a parse ediliyor.
-	if value, data := JsonError(err, 500, "beklenmedik json parse hatası"); value == true {
+	if value, data := JsonError(err, 500, "beklenmedik json parse hatasi"); value == true {
 		return 500, data
 	}
 
 	return 201, data // Başarılı response return yapılıyor.
+}
+
+func (route *Route) Get(fieldWorkerID string) (int, []byte) { // (int, []byte) => (statusCode, responseData)
+	var routes []Route
+	temp, _ := strconv.Atoi(fieldWorkerID)
+	route.FieldWorkerID = temp
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+
+	// Kullanıcı adresleri getirilmesi için
+	rows, _ := db.Query("Select * from routes where fieldWorkerID = $1", route.FieldWorkerID)
+
+	temp = 0
+	for rows.Next() {
+		temp = 1
+		err := rows.Scan(&route.RouteID, &route.FieldWorkerID, &route.CreateRouteTime, &route.IsDone, &route.IsStart)
+		if value, data := JsonError(err, 404, "veri hatası"); value == true {
+			return 404, data
+		}
+		routes = append(routes, *route)
+	}
+	if temp == 0 {
+		if value, data := JsonError(errors.New("error"), 404, "saha calisanina ait rota bulunmamaktadir"); value == true {
+			return 404, data
+		}
+	}
+
+	info := new(Info)
+	info.InfoConstructer(true, "saha calisani rotalari")
+	infoPage := map[string]interface{}{"info": info, "content": routes} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                                   // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
 }

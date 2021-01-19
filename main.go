@@ -56,6 +56,7 @@ func main() {
 	r.Handle("/api/fieldworkers/{wID}", IsAuthorized(FieldWorkerUpdateHandler)).Methods("PUT")
 
 	r.Handle("/api/routes/register", IsAuthorized(RouteRegisterHandler)).Methods("POST")
+	r.Handle("/api/routes/{fwID}", IsAuthorized(RouteGetHandler)).Methods("GET")
 
 	server := &http.Server{
 		Addr:    ":" + port,

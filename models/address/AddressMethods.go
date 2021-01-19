@@ -16,7 +16,7 @@ import (
 
 func (address *Address) IsEmptyStringValues() error {
 	if IsEmpty(address.FullAddress) || IsEmpty(address.District) || IsEmpty(address.City) || IsEmpty(address.Postcode) {
-		return errors.New("expected values not sent, check your values") // beklenen değerler gönderilmedi, değerlerinizi kontrol edin
+		return errors.New("beklenen degerler gonderilmemis, degerleri kontrol edin") // beklenen değerler gönderilmedi, değerlerinizi kontrol edin
 	}
 	return nil
 }
@@ -34,7 +34,7 @@ func (address *Address) Create(userID string) (int, []byte) { // (int, []byte) =
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "database connection error"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 
@@ -44,7 +44,7 @@ func (address *Address) Create(userID string) (int, []byte) { // (int, []byte) =
 		RETURNING aID`
 	ids := 0
 	err := db.QueryRow(sqlStatement, address.FullAddress, address.District, address.City, address.Postcode, address.UserID).Scan(&ids)
-	if value, data := JsonError(err, 412, "böyle bir kullanıcı bulunmuyor"); value == true {
+	if value, data := JsonError(err, 412, "boyle bir kullanici bulunmuyor"); value == true {
 		return 500, data
 	}
 	defer db.Close() // DB bağlantısı kapatıldı.
@@ -52,11 +52,11 @@ func (address *Address) Create(userID string) (int, []byte) { // (int, []byte) =
 
 	// Başarılı response için bilgi sayfası oluşturuluyor
 	info := new(Info)
-	info.InfoConstructer(true, "veri kaydı başarılı")
+	info.InfoConstructer(true, "veri kaydı basarili")
 	infoPage := map[string]interface{}{"info": info, "content": address} // Response sayfası oluşturuldu ve değerleri işlendi.
 
 	data, err := json.Marshal(infoPage) // InfoPage nesnesi json'a parse ediliyor.
-	if value, data := JsonError(err, 500, "unexpected json parse error"); value == true {
+	if value, data := JsonError(err, 500, "beklenmeyen json parse hatası"); value == true {
 		return 500, data
 	}
 
@@ -78,18 +78,18 @@ func (address *Address) Update(userID, adrsID string) (int, []byte) {
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 	defer db.Close()
 	sqlStatement := `update address set fullAddress=$1, district=$2, city=$3, postcode=$4 where userID = $5 and aID = $6 RETURNING aID`
 	err := db.QueryRow(sqlStatement, address.FullAddress, address.District, address.City, address.Postcode, address.UserID, address.AID).Scan(&temp)
-	if value, data := JsonError(err, 404, "güncelleme işlemi başarısız"); value == true {
+	if value, data := JsonError(err, 404, "guncelleme islemi basarisiz"); value == true {
 		return 404, data
 	}
 
 	info := new(Info)
-	info.InfoConstructer(true, "güncelleme işlemi başarılı")
+	info.InfoConstructer(true, "guncelleme islemi basarili")
 	infoPage := map[string]interface{}{"info": info, "content": address} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                                    // InfoPage nesnesi json'a parse ediliyor.
 
@@ -104,33 +104,33 @@ func (address *Address) Get(id string) (int, []byte) {
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 	defer db.Close()
 
 	// Kullanıcı adresleri getirilmesi için
 	rows, err := db.Query("Select * from address where userID = $1", address.UserID)
-	if value, data := JsonError(err, 404, "kullanıcı adresleri getirilemedi (kulllanıcı adı yanlış olabilir)"); value == true {
+	if value, data := JsonError(err, 404, "kullanici adresleri getirilemedi (kulllanici adi yanlis olabilir)"); value == true {
 		return 404, data
 	}
 	temp = 0
 	for rows.Next() {
 		temp = 1
 		err = rows.Scan(&address.AID, &address.FullAddress, &address.District, &address.City, &address.Postcode, &address.UserID)
-		if value, data := JsonError(err, 404, "veri hatası"); value == true {
+		if value, data := JsonError(err, 404, "veri hatasi"); value == true {
 			return 404, data
 		}
 		adrs = append(adrs, *address)
 	}
 	if temp == 0 {
-		if value, data := JsonError(errors.New("error"), 404, "kullanıcıya ait adres bulunmuyor"); value == true {
+		if value, data := JsonError(errors.New("error"), 404, "kullaniciya ait adres bulunmuyor"); value == true {
 			return 404, data
 		}
 	}
 
 	info := new(Info)
-	info.InfoConstructer(true, "kullanıcı adresleri")
+	info.InfoConstructer(true, "kullanici adresleri")
 	infoPage := map[string]interface{}{"info": info, "content": adrs} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                                 // InfoPage nesnesi json'a parse ediliyor.
 
@@ -145,24 +145,24 @@ func (address *Address) Delete(userID, adrsID string) (int, []byte) {
 	// Database Bağlantısı
 	a := new(Db)
 	db, errdb := a.Connect()
-	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+	if value, data := JsonError(errdb, 500, "veritabani baglanti hatasi"); value == true { // Database bağlantı hatası
 		return 500, data
 	}
 	defer db.Close()
 	sqlStatement := `DELETE FROM address WHERE aID = $1 and userID = $2`
 	res, err := db.Exec(sqlStatement, address.AID, address.UserID)
-	if value, data := JsonError(err, 404, "silme işlemi başarısız"); value == true {
+	if value, data := JsonError(err, 404, "silme islemi basarisiz"); value == true {
 		return 404, data
 	}
 	count, _ := res.RowsAffected()
 	if count == 0 {
-		if value, data := JsonError(errors.New("silme"), 404, "silme işlemi başarısız"); value == true {
+		if value, data := JsonError(errors.New("silme"), 404, "silme islemi basarisiz"); value == true {
 			return 404, data
 		}
 	}
 
 	info := new(Info)
-	info.InfoConstructer(true, "silme işlemi başarılı")
+	info.InfoConstructer(true, "silme islemi basarili")
 	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                // InfoPage nesnesi json'a parse ediliyor.
 
