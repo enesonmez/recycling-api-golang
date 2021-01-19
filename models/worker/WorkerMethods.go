@@ -77,6 +77,43 @@ func (worker *Worker) ManagerSignIn() (int, []byte) {
 	return 200, data
 }
 
+func (worker *Worker) FieldWorkerSignIn() (int, []byte) {
+	if IsEmpty(worker.Email) || IsEmpty(worker.Password) { // Gönderilen veriler boş mu?
+		if value, data := JsonError(errors.New("error"), 400, "beklenen değerler gönderilmemiş, değerleri kontrol edin"); value == true {
+			return 400, data
+		}
+	}
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+	var temp string // şifrelenmiş password'ü tutacak.
+	sqlStatement := `select * from workers where status = $1 and email = $2`
+	err := db.QueryRow(sqlStatement, 1, worker.Email).Scan(&worker.WID, &worker.FirstName, &worker.LastName, &worker.PhoneNumber, &worker.Email, &temp, &worker.Gender, &worker.BirthDay, &worker.RecordTime, &worker.Status)
+	if value, data := JsonError(err, 404, "yönetici kaydı bulunamadı, işlem başarısız"); value == true {
+		return 404, data
+	}
+
+	decoded, _ := hex.DecodeString(temp) // Şifrelenmiş id numarasını çözerek gerçek şifre hale çevirme
+	pass, _ := Decrypt([]byte(decoded))
+	if worker.Password != string(pass) {
+		if value, data := JsonError(errors.New("error"), 400, "şifre hatalı"); value == true {
+			return 400, data
+		}
+	}
+	worker.Password = temp
+
+	info := new(Info)
+	info.InfoConstructer(true, "giriş başarılı")
+	infoPage := map[string]interface{}{"info": info, "content": worker} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                                   // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
+}
+
 func (worker *Worker) Create() (int, []byte) { // (int, []byte) => (statusCode, responseData)
 	// Gönderilen değerler boş mu kontrolü
 	if err := worker.IsEmptyStringValues(); err != nil {

@@ -142,7 +142,7 @@ func (user *User) Activation(id string) (int, []byte) {
 	sqlStatement := `UPDATE users SET isVerifyEmail = $2 WHERE uID = $1` // Güncelleme işlemi
 	tx, _ := db.Begin()                                                  // Rollback yapmak için transaction başlatılıyor.
 	_, err := db.Exec(sqlStatement, identity, true)
-	if value, data := JsonError(err, 404, "kullanıcı kaydı bukunamadı, işlem başarısız"); value == true {
+	if value, data := JsonError(err, 404, "kullanıcı kaydı bulunamadı, işlem başarısız"); value == true {
 		tx.Rollback() // Rollback yapılıyor.
 		return 404, data
 	}
