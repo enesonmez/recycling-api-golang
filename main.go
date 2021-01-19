@@ -45,6 +45,7 @@ func main() {
 	r.Handle("/api/users/{userID}/requests", IsAuthorized(UserRequestRegisterHandler)).Methods("POST")
 	r.Handle("/api/users/{userID}/requests", IsAuthorized(UserRequestGetHandler)).Methods("GET")
 	r.Handle("/api/users/{userID}/requests/{reqID}", IsAuthorized(UserRequestDeleteHandler)).Methods("DELETE")
+	r.Handle("/api/requests", IsAuthorized(UserRequestAllGetHandler)).Methods("GET")
 
 	r.Handle("/api/manageworkers/signin", IsAuthorized(ManageWorkerSignInHandler)).Methods("POST")
 	r.Handle("/api/fieldworkers/signin", IsAuthorized(FieldWorkerSignInHandler)).Methods("POST")

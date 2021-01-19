@@ -173,6 +173,14 @@ func UserRequestGetHandler(w http.ResponseWriter, r *http.Request) {
 	Respond(w, status, resp)                    // Respond fonksiyonu ile response yollanır.
 }
 
+// HTTP GET - /api/users/{userID}/requests
+func UserRequestAllGetHandler(w http.ResponseWriter, r *http.Request) {
+	var request Request
+
+	status, resp := request.AllGet() // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)         // Respond fonksiyonu ile response yollanır.
+}
+
 // HTTP DELETE - /api/users/{userID}/requests/{reqID}
 func UserRequestDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	var request Request
