@@ -39,12 +39,16 @@ func (dbms *Db) CreateTables(db *sql.DB) error {
 	address := "CREATE TABLE IF NOT EXISTS address (aID SERIAL PRIMARY KEY NOT NULL, fullAddress TEXT NOT NULL, district TEXT NOT NULL, city TEXT NOT NULL, postcode VARCHAR (50) NOT NULL, userID INT, FOREIGN KEY (userID) REFERENCES users(uID));"
 	requests := "CREATE TABLE IF NOT EXISTS requests (reqID SERIAL PRIMARY KEY NOT NULL, userID INT NOT NULL, addressID INT NOT NULL, requestCreateTime TIMESTAMP NOT NULL, state INT NOT NULL, FOREIGN KEY (userID) REFERENCES users(uID), FOREIGN KEY (addressID) REFERENCES address(aID) ON DELETE CASCADE)"
 	workers := "CREATE TABLE IF NOT EXISTS workers (wID SERIAL PRIMARY KEY NOT NULL, firstName VARCHAR (50) NOT NULL, lastName VARCHAR (60) NOT NULL, phoneNumber VARCHAR (18) NOT NULL UNIQUE, email VARCHAR (50) NOT NULL UNIQUE, password VARCHAR (256) NOT NULL, gender VARCHAR (15) NOT NULL, birthDay TIMESTAMP NOT NULL, recordTime TIMESTAMP NOT NULL, status INT NOT NULL);"
+	routes := "CREATE TABLE IF NOT EXISTS routes (routeID SERIAL PRIMARY KEY NOT NULL, fieldWorkerID INT NOT NULL, createRouteTime TIMESTAMP NOT NULL, isDone boolean NOT NULL, isStart boolean NOT NULL, FOREIGN KEY (fieldWorkerID) REFERENCES workers(wID));"
+	routeAddressMaps := "CREATE TABLE IF NOT EXISTS routeAddressMaps (ramID SERIAL PRIMARY KEY NOT NULL, routeID INT NOT NULL, requestID INT NOT NULL, FOREIGN KEY (routeID) REFERENCES routes(routeID) ON DELETE CASCADE, FOREIGN KEY (requestID) REFERENCES requests(reqID));"
 
 	_, err := db.Exec(users)
 	_, errAddress := db.Exec(address)
 	_, errRequest := db.Exec(requests)
 	_, errWorkers := db.Exec(workers)
-	if err != nil || errAddress != nil || errRequest != nil || errWorkers != nil {
+	_, errRoutes := db.Exec(routes)
+	_, errRouteAddressMaps := db.Exec(routeAddressMaps)
+	if err != nil || errAddress != nil || errRequest != nil || errWorkers != nil || errRoutes != nil || errRouteAddressMaps != nil {
 		fmt.Println(errWorkers.Error())
 		os.Exit(1)
 		return err

@@ -47,11 +47,14 @@ func main() {
 	r.Handle("/api/users/{userID}/requests/{reqID}", IsAuthorized(UserRequestDeleteHandler)).Methods("DELETE")
 
 	r.Handle("/api/manageworkers/signin", IsAuthorized(ManageWorkerSignInHandler)).Methods("POST")
+	r.Handle("/api/fieldworkers/signin", IsAuthorized(FieldWorkerSignInHandler)).Methods("POST")
 
 	r.Handle("/api/fieldworkers/register", IsAuthorized(FieldWorkerRegisterHandler)).Methods("POST")
 	r.Handle("/api/fieldworkers", IsAuthorized(FieldWorkerAllGetHandler)).Methods("GET")
 	r.Handle("/api/fieldworkers/{wID}", IsAuthorized(FieldWorkerDeleteHandler)).Methods("DELETE")
 	r.Handle("/api/fieldworkers/{wID}", IsAuthorized(FieldWorkerUpdateHandler)).Methods("PUT")
+
+	r.Handle("/api/routes/register", IsAuthorized(RouteRegisterHandler)).Methods("POST")
 
 	server := &http.Server{
 		Addr:    ":" + port,

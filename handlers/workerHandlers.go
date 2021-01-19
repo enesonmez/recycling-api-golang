@@ -27,6 +27,18 @@ func ManageWorkerSignInHandler(w http.ResponseWriter, r *http.Request) {
 	Respond(w, status, resp)                  // Respond fonksiyonu ile response yollanır.
 }
 
+// HTTP POST - /api/fieldworkers/signin
+func FieldWorkerSignInHandler(w http.ResponseWriter, r *http.Request) {
+	var fieldWorker Worker
+	err := json.NewDecoder(r.Body).Decode(&fieldWorker)                                                                      // Body içeriği User modeli ile eşleştirliyor.
+	if value, data := JsonError(err, 500, "beklenmeyen json parse hatası (json verilerinizi kontrol edin)"); value == true { // Hata kontrolü
+		Respond(w, 500, data)
+		return
+	}
+	status, resp := fieldWorker.FieldWorkerSignIn() // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                        // Respond fonksiyonu ile response yollanır.
+}
+
 // HTTP POST - /api/fieldworkers/register
 func FieldWorkerRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var field Worker
