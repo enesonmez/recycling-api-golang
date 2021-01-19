@@ -265,6 +265,31 @@ func (user *User) UpdatePassword(id string) (int, []byte) {
 	return 200, data
 }
 
+func (user *User) UpdateBlock(id string) (int, []byte) {
+	temp, _ := strconv.Atoi(id)
+	user.SetuID(temp)
+
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+	sqlStatement := `update users set isBlock=$1 where uID = $2 RETURNING uID`
+	err := db.QueryRow(sqlStatement, user.IsBlock, user.ID).Scan(&temp)
+	if value, data := JsonError(err, 404, "güncelleme işlemi başarısız"); value == true {
+		return 404, data
+	}
+
+	info := new(Info)
+	info.InfoConstructer(true, "güncelleme işlemi başarılı")
+	infoPage := map[string]interface{}{"info": info} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
+}
+
 // userID'de değer varsa kullanıcı bilgilerini yoksa tüm kullanıcı bilgilerini getirir.
 func (user *User) Get(userID string) (int, []byte) {
 	var usr []User

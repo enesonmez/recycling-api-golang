@@ -77,6 +77,19 @@ func UserUpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	Respond(w, status, resp)                        // Respond fonksiyonu ile response yollanır.
 }
 
+// HTTP PUT - /api/users/updateBlock/{id}
+func UserUpdateBlockHandler(w http.ResponseWriter, r *http.Request) {
+	var user User
+	vars := mux.Vars(r)
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if value, data := JsonError(err, 500, "beklenmeyen json parse hatası (json verilerinizi kontrol edin)"); value == true { // Hata kontrolü
+		Respond(w, 500, data)
+		return
+	}
+	status, resp := user.UpdateBlock(vars["id"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                     // Respond fonksiyonu ile response yollanır.
+}
+
 // HTTP GET - /api/users
 func UserAllGetHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
