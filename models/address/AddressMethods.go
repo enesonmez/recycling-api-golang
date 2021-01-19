@@ -124,7 +124,7 @@ func (address *Address) Get(id string) (int, []byte) {
 		adrs = append(adrs, *address)
 	}
 	if temp == 0 {
-		if value, data := JsonError(errors.New("böyle bir kullanıcı bulunmuyor"), 404, "böyle bir kullanıcı bulunmuyor"); value == true {
+		if value, data := JsonError(errors.New("error"), 404, "kullanıcıya ait adres bulunmuyor"); value == true {
 			return 404, data
 		}
 	}
