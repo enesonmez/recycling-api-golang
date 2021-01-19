@@ -26,11 +26,20 @@ func RouteRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	Respond(w, status, resp)       // Respond fonksiyonu ile response yollanır.
 }
 
-// HTTP POST - /api/routes/register
+// HTTP POST - /api/fieldworkers/{fwID}/routes
 func RouteGetHandler(w http.ResponseWriter, r *http.Request) {
 	var route Route
 	vars := mux.Vars(r)
 
 	status, resp := route.Get(vars["fwID"]) // resp değişkenine json verisi alınır.
 	Respond(w, status, resp)                // Respond fonksiyonu ile response yollanır.
+}
+
+// HTTP POST - /api/routes/{routeID}
+func RouteAddressGetHandler(w http.ResponseWriter, r *http.Request) {
+	var route Route
+	vars := mux.Vars(r)
+
+	status, resp := route.GetRouteAddress(vars["routeID"]) // resp değişkenine json verisi alınır.
+	Respond(w, status, resp)                               // Respond fonksiyonu ile response yollanır.
 }

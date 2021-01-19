@@ -54,9 +54,10 @@ func main() {
 	r.Handle("/api/fieldworkers", IsAuthorized(FieldWorkerAllGetHandler)).Methods("GET")
 	r.Handle("/api/fieldworkers/{wID}", IsAuthorized(FieldWorkerDeleteHandler)).Methods("DELETE")
 	r.Handle("/api/fieldworkers/{wID}", IsAuthorized(FieldWorkerUpdateHandler)).Methods("PUT")
+	r.Handle("/api/fieldworkers/{fwID}/routes", IsAuthorized(RouteGetHandler)).Methods("GET")
 
 	r.Handle("/api/routes/register", IsAuthorized(RouteRegisterHandler)).Methods("POST")
-	r.Handle("/api/routes/{fwID}", IsAuthorized(RouteGetHandler)).Methods("GET")
+	r.Handle("/api/routes/{routeID}", IsAuthorized(RouteAddressGetHandler)).Methods("GET")
 
 	server := &http.Server{
 		Addr:    ":" + port,

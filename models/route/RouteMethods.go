@@ -14,6 +14,8 @@ import (
 	. "oyeco-api/helpers/error"
 
 	. "oyeco-api/models/info"
+
+	. "oyeco-api/models/address"
 )
 
 func (route *Route) Create() (int, []byte) { // (int, []byte) => (statusCode, responseData)
@@ -118,7 +120,7 @@ func (route *Route) Get(fieldWorkerID string) (int, []byte) { // (int, []byte) =
 		routes = append(routes, *route)
 	}
 	if temp == 0 {
-		if value, data := JsonError(errors.New("error"), 404, "saha calisanina ait rota bulunmamaktadir"); value == true {
+		if value, data := JsonError(errors.New("error"), 404, "saha calisanina ait rota bulunmamaktadir veya böyle bir saha calisani yok"); value == true {
 			return 404, data
 		}
 	}
@@ -127,6 +129,69 @@ func (route *Route) Get(fieldWorkerID string) (int, []byte) { // (int, []byte) =
 	info.InfoConstructer(true, "saha calisani rotalari")
 	infoPage := map[string]interface{}{"info": info, "content": routes} // Response sayfası oluşturuldu ve değerleri işlendi.
 	data, _ := json.Marshal(infoPage)                                   // InfoPage nesnesi json'a parse ediliyor.
+
+	return 200, data
+}
+
+func (route *Route) GetRouteAddress(routeID string) (int, []byte) { // (int, []byte) => (statusCode, responseData)
+	temp, _ := strconv.Atoi(routeID)
+	route.RouteID = temp
+	// Database Bağlantısı
+	a := new(Db)
+	db, errdb := a.Connect()
+	if value, data := JsonError(errdb, 500, "veritabanı bağlantı hatası"); value == true { // Database bağlantı hatası
+		return 500, data
+	}
+	defer db.Close()
+
+	// İstek idlerin getirilmesi için
+	rows, _ := db.Query("Select requestID from routeAddressMaps where routeID = $1", route.RouteID)
+
+	temp = 0
+	count := 0
+	var requests []int
+
+	for rows.Next() {
+		err := rows.Scan(&temp)
+		requests = append(requests, temp)
+		if value, data := JsonError(err, 404, "veri hatası"); value == true {
+			return 404, data
+		}
+		count = count + 1
+	}
+	if temp == 0 {
+		if value, data := JsonError(errors.New("error"), 404, "rota idsi hatali"); value == true {
+			return 404, data
+		}
+	}
+
+	// adres idlerin getirilmesi için
+	var address []int
+	for _, value := range requests {
+		sqlStatement := `Select addressID from requests where reqID = $1`
+		err := db.QueryRow(sqlStatement, value).Scan(&temp)
+		if value, data := JsonError(err, 404, "veri hatası"); value == true {
+			return 404, data
+		}
+		address = append(address, temp)
+	}
+
+	var adrs []Address
+	var tempAdrs Address
+
+	for _, value := range address {
+		sqlStatement := `Select * from address where aID = $1`
+		err := db.QueryRow(sqlStatement, value).Scan(&tempAdrs.AID, &tempAdrs.FullAddress, &tempAdrs.District, &tempAdrs.City, &tempAdrs.Postcode, &tempAdrs.UserID)
+		if value, data := JsonError(err, 404, "veri hatası"); value == true {
+			return 404, data
+		}
+		adrs = append(adrs, tempAdrs)
+	}
+
+	info := new(Info)
+	info.InfoConstructer(true, "saha calisani rota adresleri")
+	infoPage := map[string]interface{}{"info": info, "content": adrs} // Response sayfası oluşturuldu ve değerleri işlendi.
+	data, _ := json.Marshal(infoPage)                                 // InfoPage nesnesi json'a parse ediliyor.
 
 	return 200, data
 }
