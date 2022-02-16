@@ -1,10 +1,10 @@
 {
-    "dbHost" : "johnny.heliohost.org",
+    "dbHost" : "",
     "dbPort" : 5432,
-    "dbUsername" : "enesonme_local",
-    "dbPassword" : "A25.pSt13Cd;",
-    "dbName" : "enesonme_upcycling",
-    "email" : "upcycling@enesonmez.com",
-    "emailPassword" : "123456789deneme",
-    "baseURL" : "https://appupcycling.herokuapp.com"
+    "dbUsername" : "",
+    "dbPassword" : "",
+    "dbName" : "",
+    "email" : "",
+    "emailPassword" : "",
+    "baseURL" : ""
 }
